@@ -48,66 +48,55 @@ class Grade:
 
 # ================================================================================
 
-def get_period_ids(relavant_classes, period):
-    period_ids = []
-    for i in relavant_classes:
-        period_ids.append(i['period'][period]['period_id'])
+def get_period_id(relavant_class, period):
+    period_ids = {}
+    for a in relavant_class.data:
+        grade = Grade(a)
+        period_ids[grade.data['section_id']] = grade.data['period'][period]['period_id']
     return period_ids
 
 # ================================================================================
 
-def get_user_grades_GPA(sc):
-    sections = Section(sc.get_user_sections(user_id=sc.get_me().uid))
-
-    # gets all current enrolled courses
-
-    grades = Grade(sc.get_user_grades(user_id=sc.get_me().uid))
-
-    # returns big dictionary with Grade objects
-
-    relavant_classes = grades.parse_section(sections.get_course_ids())
-
-    # parses through grade objects
-    # idenifies the relavent course's ids from the ones found in the get_user_sections.
-    # it compares all the course ids to the relavent ones and picks them out
-
-    period_ids = get_period_ids(relavant_classes, -1)
-
-    # each course contains an period id other than a course one
-    # the period id is needed to locate final grade in the final grades list so 
-    # it grabs -1 index (the most recent) period ids
-
-    tot_grades = grades.get_grades(relavant_classes, period_ids)
-
-    # iterates through classes
-    # for each grading period in the clases final grades
-    # if the grading period's id in the relavent periods ids
-    # then returns grades found in that period
-
-    titles = sections.get_course_titles()
-    title_keys = list(titles)
-    grade_keys = list(tot_grades)
-
-    print(f'{sc.get_me().name_display}\'s grades:')
-
+def get_user_grades(sc):
+    uid = sc.get_me().uid
+   
+    sections = Section(sc.get_user_sections(user_id=uid))
+    course_titles = sections.course_titles
     added_grade = 0
-    for i in grade_keys:
-        added_grade += float(tot_grades[i])
-        print(f'{tot_grades[i]} : {titles[i]}')
-    print(f'GPA: {round(added_grade/len(grade_keys), 2)}%')
+    x = 0
+    print('\n' + '='*30)
+    print(f'{sc.get_me().name_display}\'s grades:')
+    print('='*30)
+    for i in sections.ids:
+        section_grade = Grade(sc.get_user_grades_by_section(uid, i))
+        if section_grade.data != []:
+            x += 1
+            period_dict = get_period_id(section_grade, -1)
+            period = section_grade.data[-1]['final_grade']
+            final_grade = period[-1]['grade']
+            print(f"{course_titles[i]} : {final_grade}")
+            added_grade += final_grade
+    print(f"GA: {round(added_grade/x, 2)}%\n")
 
 
 # ================================================================================
 
 if __name__ == "__main__":
 
-    with open('schoolopy_keys.yaml', 'r') as f:
+    with open('/Users/25ExterkampJ/Desktop/schoology_assistant/schoolopy_keys.yaml', 'r') as f:
         cfg = yaml.load(f)
 
     sc = schoolopy.Schoology(schoolopy.Auth(cfg['key'], cfg['secret']))
     sc.limit = 10  # Only retrieve 10 objects max
 
-    get_user_grades_GPA(sc)
+    get_user_grades(sc)
+
+
+
+
+
+
+    
     
 
 
