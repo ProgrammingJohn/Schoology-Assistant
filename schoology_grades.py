@@ -103,6 +103,8 @@ def create_data_file(course_titles, classes):
             header.append('GA')
             csvwriter.writerow(header)
 
+# ================================================================================
+
 def plot_grades():
     plt.style.use('seaborn-paper')
 
@@ -110,46 +112,53 @@ def plot_grades():
         csvreader = csv.reader(csvfile)
 
         rows = [row for row in csvreader]
-        headers = rows[0][1:-1]
-        column_key = rows[1:][0][1:-1]
-        rows = rows[2:]
-        time_stamp_data = []
-        class_grades = {}
-        grade_averages = []
 
-        for a in column_key:
-            class_grades[a] = []
+    for row in rows:
+        if row == []:
+            rows.remove(row)
+            
+    headers = rows[0][1:-1]
+    column_key = rows[1:][0][1:-1]
+    rows = rows[2:]
+    time_stamp_data = []
+    class_grades = {}
+    grade_averages = []
+
+    for a in column_key:
+        class_grades[a] = []
 
 
-        for row in rows:
+    for row in rows:
 
-            time_stamp_data.append(row[0].replace(' ', '\n'))
-            grade_averages.append(float(row[-1]))
+        time_stamp_data.append(row[0].replace(' ', '\n'))
+        grade_averages.append(float(row[-1]))
 
-            for i, grade in enumerate(row[1:-1]):
+        for i, grade in enumerate(row[1:-1]):
 
-                class_grades[column_key[i]].append(float(grade))
+            class_grades[column_key[i]].append(float(grade))
 
-        x = [dt.datetime.strptime(d,"%d/%m/%Y %H:%M:%S") for d in time_stamp_data]
-        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%Y %H:%M"))
-        # plt.gca().xaxis.set_major_locator(mdates.HourLocator())
+    x = [dt.datetime.strptime(d,"%d/%m/%Y %H:%M:%S") for d in time_stamp_data]
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%d/%m/%Y %H:%M"))
+    # plt.gca().xaxis.set_major_locator(mdates.HourLocator())
 
-        for i, class_ in enumerate(class_grades):
+    for i, class_ in enumerate(class_grades):
 
-            plt.plot_date(x, class_grades[class_], linestyle="solid",label=headers[i])
+        plt.plot_date(x, class_grades[class_], linestyle="solid",label=headers[i])
 
-        plt.plot_date(x, grade_averages, linestyle="--", color="#444444", label="GA")
-        plt.gcf().autofmt_xdate()
-        # date_format = mdates.DateFormatter('%b/%d/%Y %H')
-        # plt.gca().xaxis.set_major_formatter(date_format)
-        plt.xlabel("Date")
-        plt.tick_params(labelsize=7)
-        plt.ylabel("Grade")
-        plt.title("Grades")
-        plt.grid()
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
+    plt.plot_date(x, grade_averages, linestyle="--", color="#444444", label="GA")
+    plt.gcf().autofmt_xdate()
+    # date_format = mdates.DateFormatter('%b/%d/%Y %H')
+    # plt.gca().xaxis.set_major_formatter(date_format)
+    plt.xlabel("Date")
+    plt.tick_params(labelsize=7)
+    plt.ylabel("Grade")
+    plt.title("Grades")
+    plt.grid()
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+# ================================================================================
 
 def main():
 
@@ -187,6 +196,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
