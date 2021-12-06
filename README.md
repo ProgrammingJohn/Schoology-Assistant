@@ -1,6 +1,8 @@
 # Schoology-Assistant
 A python script that uses Schoolopy module to retreive student grades displalys them and also graphs them
 
+For some reason you want to use this find line `181` in `grades.py` and enter your schoology api keys.
+
 # Notes:
 opening matplotlib in a pyvenv is diffuclut due to gui dependancies. So, I found documentation that said to add a file to the bin in the env.
 the file is called `frameworkpython` containing:
