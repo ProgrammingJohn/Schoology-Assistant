@@ -5,52 +5,6 @@ from os.path import exists
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 
-
-# ================================================================================
-
-class Section:
-    def __init__(self, data):
-        # data = list of Section elements contaning dicts
-        self.ids = []
-        self.amount = len(data)
-        self.course_titles = {}
-        for i in range(self.amount):
-            self.ids.append(data[i]['id'])
-            self.course_titles[data[i]['id']] = data[i]['course_title']
-
-    def get_course_ids(self):
-        return self.ids
-
-    def get_course_titles(self):
-        return self.course_titles
- 
-# ================================================================================
-
-class Grade:
-    def __init__(self, data):
-        self.data = data
-        self.relavant_classes = []
-
-    def parse_section(self, ids):
-        for grade_item in self.data:
-            section_id = grade_item['section_id']
-            if section_id in ids:
-                for i in ids:
-                    if section_id == i:
-                        self.relavant_classes.append(grade_item)
-        return self.relavant_classes
-
-    def get_grades(self, relavant_classes, period_ids):
-        grades = {}
-        for class_ in relavant_classes:
-            for period in class_['final_grade']:
-                if period['period_id'] in period_ids:
-                    grades[class_['section_id']] = period['grade']
-
-        return grades
-
-# ================================================================================
-
 # ================================================================================
 
 def get_display_user_grades():
@@ -67,18 +21,20 @@ def get_display_user_grades():
     alert_text += f'{sc.get_me().name_display}\'s grades: \n'
     alert_text += ('='*30) + '\n'
 
-    for item in sections['section']:
-        id = item['id']
-        section_grade = sc._get(f"users/{uid}/grades?section_id={id}")
-        section = section_grade['section']
-        if section:
-            num_of_periods = len(section[-1]['final_grade']) - 1
-            if num_of_periods > max:
-                max = num_of_periods
+    # for item in sections['section']:
+    #     id = item['id']
+    #     section_grade = sc._get(f"users/{uid}/grades?section_id={id}")
+    #     section = section_grade['section']
+    #     if section:
+    #         num_of_periods = len(section[-1]['final_grade']) - 1
+    #         if num_of_periods > max:
+    #             max = num_of_periods
 
-    GAs = [0 for i in range(num_of_periods)]
+    # GAs = [0 for i in range(num_of_periods)]
+    GAs = []
 
     for item in sections['section']:
+        class_gas = []
         id = item['id']
         name = item['course_title']
         classes.append([id, name])
@@ -89,17 +45,14 @@ def get_display_user_grades():
             num_of_periods = len(section[-1]['final_grade']) - 1
             quarter_list = section[-1]['final_grade']
             for i in range(0, num_of_periods):
-                GAs[i] = GAs[i] + quarter_list[i+1]['grade']
+                class_gas.append(quarter_list[i+1]['grade'])
                 classes[-1].append(quarter_list[i]['grade'])
             classes[-1].append(quarter_list[-1]['grade'])
             alert_text += f"{name} : {quarter_list[-1]['grade']}\n"
             final_grade = quarter_list[-1]['grade']
-    GA = 0
-    print(GAs)
-    for i, item in enumerate(GAs):
-        GAs[i] = item / graded_classes
-        GA = GA + item / graded_classes
-    alert_text += "GA: "+ str(round(GA/2,2)) + '\n'
+            GAs.append(sum(class_gas)/len(class_gas))
+    GA = sum(GAs)/len(GAs)
+    alert_text += "GA: "+ str(round(GA,2)) + '\n'
 
     master = []
     master.append(classes)
@@ -161,10 +114,11 @@ def plot_grades():
 
     for i, class_ in enumerate(class_grades):
 
-        plt.plot_date(x, class_grades[class_], linestyle="solid",label=headers[i])
+        plt.plot_date(x, class_grades[class_], linestyle="solid", label=headers[i])
 
     plt.plot_date(x, grade_averages, linestyle="--", color="#444444", label="GA")
     plt.gcf().autofmt_xdate()
+
     # date_format = mdates.DateFormatter('%b/%d/%Y %H')
     # plt.gca().xaxis.set_major_formatter(date_format)
     plt.xlabel("Date")
@@ -178,10 +132,9 @@ def plot_grades():
 
 def main():
 
-    sc = schoolopy.Schoology(schoolopy.Auth('', ''))
-    uid = sc.get_me().uid
-
     master = get_display_user_grades()
+
+    # make if data file doesn't exist 
 
     if not exists(os.getcwd() + '/schoology_grades.csv'):
         create_data_file(course_titles, classes)
@@ -189,9 +142,9 @@ def main():
     now = dt.datetime.now()
     date = now.strftime("%d/%m/%Y %H:%M:%S")
     
-    csv_string = [f"{date}"]
+    csv_string = [str(date)]
 
-    graded_classes=[x for x in master[0] if len(x)>2]
+    graded_classes = [x for x in master[0] if len(x)>2]
 
     # print(graded_classes)
     with open('schoology_grades.csv', 'r') as csvfile:
@@ -206,8 +159,8 @@ def main():
                 if i in item:
                     print(item)
                     csv_string.append(f"{item[-1]}")
-
-        csv_string.append(master[-1]/len(master[-2]))
+                    
+        csv_string.append(master[-1])
         csvwriter.writerow(csv_string)
 
 
