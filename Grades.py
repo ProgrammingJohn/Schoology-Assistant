@@ -8,7 +8,7 @@ import matplotlib.dates as mdates
 # ================================================================================
 
 def get_display_user_grades():
-    sc = schoolopy.Schoology(schoolopy.Auth('ece95872cd2fd46b536c91b023e42381060a6a114', 'df72f273723606b26c1360519dbda860'))
+    sc = schoolopy.Schoology(schoolopy.Auth('', ''))
     uid = sc._get('users/me')['id']
     sections = sc._get(f'users/{uid}/sections')
     max = 0
